@@ -6,111 +6,74 @@ from error import sse, sse_prime
 
 class Network:
     def __init__(self):
-        self.w1 = np.random.rand(4, 5) * 2 - 1
-        self.w2 = np.random.rand(1, 5) * 2 - 1
+        self.w1 = np.random.rand(4, 4) * 2 - 1
+        self.b1 = np.random.rand(4, 1) * 2 - 1
+        self.w2 = np.random.rand(1, 4) * 2 - 1
+        self.b2 = np.random.rand() * 2 - 1
 
     def train(self, train, labels, learning_rate):
         model_passes = False
         epoch = 0
 
-        while not model_passes:
-        
+        while not model_passes:  # and epoch < 1000:
             error = 0
-            error_prime = 0
-            # model_passes = True
+            model_passes = True
             abs_err = 0
-
             for x, d in zip(train, labels):
                 self.predict(x)
                 error += sse(d, self.y2)
-                error_prime += sse_prime(d, self.y2)
-                
-                abs_err += abs(d - self.y2)
-                # if abs(d - self.y2) >= 0.05:
-                    # model_passes = False
+                abs_err += abs(d - self.y2[0][0])
+                if abs(d - self.y2[0][0]) >= 0.05:
+                    model_passes = False
 
-            # (1, 1) * (1, 1) = (1, 1)
-            delta2 = error_prime * sigmoid_prime(self.v2)
+                delta2 = sse_prime(d, self.y2) * sigmoid_prime(self.y2)
+                delta1 = sigmoid_prime(self.y1) * (delta2 * self.w2.T)
 
-            # (1, 1) * (1, 1) * (1, 5) = (1, 5)
-            delta1 = sigmoid_prime(self.v1) * delta2 * self.w2
+                self.w2 = self.w2 - learning_rate * delta2 @ self.y1.T
+                self.b2 = self.b2 - learning_rate * delta2
+                self.w1 = self.w1 - learning_rate * delta1 @ self.y0.T
+                self.b1 = self.b1 - learning_rate * delta1
 
-            # (1, 1) * (1, 5) = (1, 5)
-            de_dw2 = delta2 @ self.y1.T
-            self.w2 = self.w2 - learning_rate * de_dw2
-            # print(de_dw2)
-
-            # (4, 1) * (1, 5) = (4, 5)
-            de_dw1 = self.y0.T * delta1
-            self.w1 = self.w1 - learning_rate * de_dw1
-
-            print(f"Epoch: {epoch}\tError: {error}\t Abs Error: {abs_err}")
+            # print(
+            #     f"Epoch: {epoch}\tError: {error}\tAvg Abs Error: {abs_err/16}")
             epoch += 1
-        # print(de_dw1)
 
-            # (1, 1)
-            # dy2_dv2 = sigmoid_prime(self.v2)
-
-            # # (1, 1) * (1, 1) = (1, 1)
-            # delta2 = dy2_dv2 * de_dy2
-
-            # # (1, 1) * (1, 5) = (1, 5)
-            # de_dw2 = delta2 @ self.y1.T
-
-            # # (1, 1) * (1, 5) = (1, 5)
-            # de_dy1 = delta2 @ self.w2
-
-            # # (4, 1)
-            # dy1_dv1 = sigmoid_prime(self.v1)
-
-            # # (4, 1) * (1, 5) = (4, 5)
-            # delta1 = dy1_dv1 @ de_dy1
-
-            # # (4, 5) * (5, 4)
-            # de_dw1 = delta1 @ np.repeat(self.y0.T, 4, axis = 1)
-            # print(np.repeat(self.y0.T, 4, axis = 1))
+        return epoch
 
     def predict(self, x):
-        # (5, 1)
-        self.y0 = np.append(np.reshape(x, (4, 1)), [[1]], 0) 
-
-        #(4, 5) * (5, 1) = (4, 1)
-        self.v1 = self.w1 @ self.y0
-
-        # (5, 1)
-        self.y1 = np.append(sigmoid(self.v1), [[1]], 0)
-        
-        #(1, 5) * (5, 1) = (1, 1)
-        self.v2 = self.w2 @ self.y1
-
-        # (1, 1)
-        self.y2 = sigmoid(self.v2)
+        self.y0 = np.reshape(x, (4, 1))
+        self.y1 = sigmoid(self.w1 @ self.y0 + self.b1)
+        self.y2 = sigmoid(self.w2 @ self.y1 + self.b2)
         return self.y2
 
     def set_debug(self):
         for i in range(0, 4):
-            self.w1[i,:] = 0.1 * i + 0.1
-            self.w2[:,i] = 0.1 * i + 0.1
+            self.w1[i, :] = self.w2[:, i] = 0.1 * i + 0.1
+        self.b1[:, 0] = self.b2 = 0.5
 
-        self.w1[:,-1] = 0.5
-        self.w2[:,-1] = 0.5
 
-# n = Network()
-# n.set_debug()
-# print("----- W1 -----")
-# print(n.w1)
-# print("----- W2 -----")
-# print(n.w2)
+if __name__ == "__main__":
+    n = Network()
+    n.set_debug()
 
-# print(n.predict([1, 1, 1, 1]))
+    n.predict([1, 1, 1, 1])
 
-# print("----- y0 -----")
-# print(n.y0)
-# print("----- v1 -----")
-# print(n.v1)
-# print("----- y1 -----")
-# print(n.y1)
-# print("----- v2 -----")
-# print(n.v2)
-# print("----- y2 -----")
-# print(n.y2)
+    print("----- y0 -----")
+    print(n.y0)
+    print("----- y1 -----")
+    print(n.y1)
+    print("----- y2 -----")
+    print(n.y2)
+    print("----- Expected -----")
+    print(0.792)
+
+    n.train([[1, 1, 1, 1]], [0], 0.5)
+
+    print("----- w1 -----")
+    print(n.w1)
+    print("----- b1 -----")
+    print(n.b1)
+    print("----- w2 -----")
+    print(n.w2)
+    print("----- b2 -----")
+    print(n.b2)
