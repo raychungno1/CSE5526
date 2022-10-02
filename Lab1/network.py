@@ -9,7 +9,7 @@ class Network:
         self.w1 = np.random.rand(4, 4) * 2 - 1
         self.b1 = np.random.rand(4, 1) * 2 - 1
         self.w2 = np.random.rand(1, 4) * 2 - 1
-        self.b2 = np.random.rand() * 2 - 1
+        self.b2 = np.random.rand(1, 1) * 2 - 1
 
         self.prev_dw1 = 0
         self.prev_db1 = 0
@@ -19,15 +19,16 @@ class Network:
     def train(self, train, labels, learning_rate, momentum=False):
         model_passes = False
         epoch = 0
+        error_hist = []
 
         while not model_passes:
             error = 0
             model_passes = True
-            abs_err = 0
+
             for x, d in zip(train, labels):
                 self.predict(x)
                 error += sse(d, self.y2)
-                abs_err += abs(d - self.y2[0][0])
+
                 if abs(d - self.y2[0][0]) >= 0.05:
                     model_passes = False
 
@@ -56,9 +57,10 @@ class Network:
                     self.prev_dw1 = dw1
                     self.prev_db1 = db1
 
+            error_hist.append(error)
             epoch += 1
 
-        return epoch
+        return epoch, error_hist
 
     def predict(self, x):
         self.y0 = np.reshape(x, (4, 1))
