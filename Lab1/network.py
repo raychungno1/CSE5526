@@ -11,11 +11,16 @@ class Network:
         self.w2 = np.random.rand(1, 4) * 2 - 1
         self.b2 = np.random.rand() * 2 - 1
 
-    def train(self, train, labels, learning_rate):
+        self.prev_dw1 = 0
+        self.prev_db1 = 0
+        self.prev_dw2 = 0
+        self.prev_db2 = 0
+
+    def train(self, train, labels, learning_rate, momentum=False):
         model_passes = False
         epoch = 0
 
-        while not model_passes:  # and epoch < 1000:
+        while not model_passes:
             error = 0
             model_passes = True
             abs_err = 0
@@ -29,13 +34,28 @@ class Network:
                 delta2 = sse_prime(d, self.y2) * sigmoid_prime(self.y2)
                 delta1 = sigmoid_prime(self.y1) * (delta2 * self.w2.T)
 
-                self.w2 = self.w2 - learning_rate * delta2 @ self.y1.T
-                self.b2 = self.b2 - learning_rate * delta2
-                self.w1 = self.w1 - learning_rate * delta1 @ self.y0.T
-                self.b1 = self.b1 - learning_rate * delta1
+                dw2 = learning_rate * delta2 @ self.y1.T
+                db2 = learning_rate * delta2
+                dw1 = learning_rate * delta1 @ self.y0.T
+                db1 = learning_rate * delta1
 
-            # print(
-            #     f"Epoch: {epoch}\tError: {error}\tAvg Abs Error: {abs_err/16}")
+                if momentum:
+                    dw2 = dw2 + 0.9 * self.prev_dw2
+                    db2 = db2 + 0.9 * self.prev_db2
+                    dw1 = dw1 + 0.9 * self.prev_dw1
+                    db1 = db1 + 0.9 * self.prev_db1
+
+                self.w2 = self.w2 - dw2
+                self.b2 = self.b2 - db2
+                self.w1 = self.w1 - dw1
+                self.b1 = self.b1 - db1
+
+                if momentum:
+                    self.prev_dw2 = dw2
+                    self.prev_db2 = db2
+                    self.prev_dw1 = dw1
+                    self.prev_db1 = db1
+
             epoch += 1
 
         return epoch
