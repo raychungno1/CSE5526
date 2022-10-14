@@ -1,29 +1,39 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from Kmeans import Kmeans
+from RBF import RBF
 
 from data_gen import data_gen
 
 if __name__ == "__main__":
-    np.random.seed(0)
     train, labels = data_gen()
+    num_bases = [2, 4, 7, 11, 16]
+    learning_rates = [0.01, 0.02]
 
-    model = Kmeans(5)
-    bases, variance, error = model.train(train, labels)
-    print(bases)
-    print(variance)
-    print(error)
+    for b in num_bases:
+        for lr in learning_rates:
+            np.random.seed(0)
 
-    plt.clf()
-    x = np.arange(0, 1, 0.01)
-    y = 0.5 + 0.4 * np.sin(2 * np.pi * x)
-    plt.vlines(bases, 0, 1, alpha=0.2)
-    plt.vlines(bases + variance, 0, 1, linestyle="--", alpha=0.2)
-    plt.vlines(bases - variance, 0, 1, linestyle="--", alpha=0.2)
+            kmm = Kmeans(b)
+            bases, variance, error = kmm.train(train)
 
-    plt.plot(x, y, linestyle="--")
-    plt.plot(train, labels, linestyle="None", marker="o")
-    plt.plot(train, np.zeros(train.shape), linestyle="None", marker="o")
-    plt.title(f"No Noise")
-    plt.show()
-    # plt.savefig(f"./sse-plots/momentum-{lr}.png")
+            rbf = RBF(bases, variance)
+            rbf.train(train, labels, lr)
+
+            x = np.arange(0, 1, 0.01)
+            y = 0.5 + 0.4 * np.sin(2 * np.pi * x)
+            prediction = [rbf.predict(p) for p in x]
+
+            # for c, v, w in zip(bases, variance, rbf.w[0, :]):
+            #     gaussian = [w * np.exp(-np.square(p - c) / (2 * v)) + rbf.b for p in x]
+            #     plt.plot(x, gaussian, color="k", alpha=0.2)
+
+            plt.clf()
+            plt.plot(x, y, linestyle="--", label="Original Function")
+            plt.plot(x, prediction, label="RBF Function")
+            plt.plot(train, labels, linestyle="None", marker="o",
+                     markersize=4, label="Data Point")
+            plt.legend()
+            plt.title(f"Bases: {b} | Learning Rate: {lr}")
+            plt.savefig(f"./plots/base-{b}-lr-{lr}.png")
+            plt.show

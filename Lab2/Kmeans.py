@@ -8,24 +8,21 @@ class Kmeans:
         self.num_bases = num_bases
         self.max_epochs = max_epochs
 
-    def train(self, data: ndarray, labels: ndarray):
-        self.bases = np.random.choice(data, self.num_bases)
+    def train(self, data: ndarray) -> tuple[ndarray, ndarray, ndarray]:
+        self.bases = np.random.permutation(data)[:self.num_bases]
         error = []
+        prev_bases = []
 
-        for i in range(self.max_epochs):
+        while not np.array_equal(prev_bases, self.bases):
             prev_bases = self.bases
-            pred = np.argmin(np.square(data - self.bases[:, np.newaxis]), 0)
-            self.bases = np.bincount(pred, data) / np.bincount(pred)
-
-            if np.array_equal(prev_bases, self.bases):
-                break
+            labels = np.argmin(np.square(data - self.bases[:, np.newaxis]), 0)
+            self.bases = np.bincount(labels, data) / np.bincount(labels)
 
             e = np.min(np.square(data - self.bases[:, np.newaxis]), 0)
             error_sum = np.sum(e)
             error.append(error_sum)
-            print(f"Epoch: {i}\tCost: {error_sum}")
 
-        print(np.bincount(pred))
-        self.variance = np.bincount(pred, e) / np.bincount(pred)
+        e = np.min(np.square(data - self.bases[:, np.newaxis]), 0)
+        self.variance = np.bincount(labels, e) / np.bincount(labels)
 
         return self.bases, self.variance, error
