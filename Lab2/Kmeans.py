@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 
 
 class Kmeans:
-    def __init__(self, num_bases: int, max_epochs: int = 100):
+    def __init__(self, num_bases: int, simple=False):
         self.num_bases = num_bases
-        self.max_epochs = max_epochs
+        self.simple = simple
 
     def train(self, data: ndarray) -> tuple[ndarray, ndarray, ndarray]:
         self.bases = np.random.permutation(data)[:self.num_bases]
@@ -22,7 +22,16 @@ class Kmeans:
             error_sum = np.sum(e)
             error.append(error_sum)
 
-        e = np.min(np.square(data - self.bases[:, np.newaxis]), 0)
-        self.variance = np.bincount(labels, e) / np.bincount(labels)
+        if self.simple:
+            d_max = -np.inf
+            for i in range(self.bases.size):
+                for j in range(i + 1, self.bases.size):
+                    d_max = max(d_max, abs(self.bases[i] - self.bases[j]))
+            self.variance = np.full(
+                self.num_bases, d_max ** 2 / (2 * self.num_bases))
+        else:
+            e = np.min(np.square(data - self.bases[:, np.newaxis]), 0)
+            self.variance = np.bincount(labels, e) / np.bincount(labels)
 
+        self.variance += 10 ** -100
         return self.bases, self.variance, error

@@ -28,5 +28,5 @@ class RBF:
         return error_hist
 
     def predict(self, x: float) -> float:
-        self.x_t = np.exp(-np.square(x - self.bases) / (2 * self.variance))
+        self.x_t = np.exp(-np.divide(np.square(x - self.bases), (2 * self.variance)))
         return self.w @ self.x_t + self.b
