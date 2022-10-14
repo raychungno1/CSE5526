@@ -30,6 +30,7 @@ if __name__ == "__main__":
             ax2.set_xlabel("Epochs")
             ax2.set_ylabel("SSE")
             ax2.set_title("RBF Error")
+            plt.suptitle(f"Bases: {b} | Learning Rate: {lr}")
             plt.savefig(f"./plots/base-{b}-lr-{lr}-error.png")
 
             x = np.arange(0, 1, 0.01)
