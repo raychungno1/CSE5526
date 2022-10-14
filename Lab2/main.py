@@ -15,18 +15,26 @@ if __name__ == "__main__":
             np.random.seed(0)
 
             kmm = Kmeans(b)
-            bases, variance, error = kmm.train(train)
+            bases, variance, kmm_error = kmm.train(train)
 
             rbf = RBF(bases, variance)
-            rbf.train(train, labels, lr)
+            rbf_error = rbf.train(train, labels, lr)
+
+            plt.clf()
+            fig, (ax1, ax2) = plt.subplots(1, 2)
+            ax1.plot(kmm_error)
+            ax1.set_xlabel("Epochs")
+            ax1.set_ylabel("SSE")
+            ax1.set_title("K-Means Error")
+            ax2.plot(rbf_error)
+            ax2.set_xlabel("Epochs")
+            ax2.set_ylabel("SSE")
+            ax2.set_title("RBF Error")
+            plt.savefig(f"./plots/base-{b}-lr-{lr}-error.png")
 
             x = np.arange(0, 1, 0.01)
             y = 0.5 + 0.4 * np.sin(2 * np.pi * x)
             prediction = [rbf.predict(p) for p in x]
-
-            # for c, v, w in zip(bases, variance, rbf.w[0, :]):
-            #     gaussian = [w * np.exp(-np.square(p - c) / (2 * v)) + rbf.b for p in x]
-            #     plt.plot(x, gaussian, color="k", alpha=0.2)
 
             plt.clf()
             plt.plot(x, y, linestyle="--", label="Original Function")
@@ -36,4 +44,3 @@ if __name__ == "__main__":
             plt.legend()
             plt.title(f"Bases: {b} | Learning Rate: {lr}")
             plt.savefig(f"./plots/base-{b}-lr-{lr}.png")
-            plt.show
