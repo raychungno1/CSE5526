@@ -21,22 +21,22 @@ test_y, test_x = svm_read_problem(test_file)
 # Part 1: Linear SVM
 ###
 
-# def train(c):
-#     m = svm_train(train_y, train_x, f"-t 0 -c {c} -q")
-#     _, p_acc, _ = svm_predict(test_y, test_x, m, "-q")
-#     return p_acc[0]
+def train(c):
+    m = svm_train(train_y, train_x, f"-t 0 -c {c} -q")
+    _, p_acc, _ = svm_predict(test_y, test_x, m, "-q")
+    return p_acc[0]
 
 
-# accuracy = [train(c) for c in C]
+accuracy = [train(c) for c in C]
 
-# fig, ax = plt.subplots(1)
-# ax.plot(x, accuracy, marker="o")
-# ax.set_xlabel("C")
-# ax.set_xticks(x)
-# ax.set_xticklabels([r"$2^{" + str(i) + r"}$"for i in x])
-# ax.set_ylabel("Accuracy (%)")
-# ax.set_title("Linear SVM Classification Accuracy")
-# plt.savefig(os.path.join(plots_dir, "linear-svm-accuracy.png"))
+fig, ax = plt.subplots(1)
+ax.plot(x, accuracy, marker="o")
+ax.set_xlabel("C")
+ax.set_xticks(x)
+ax.set_xticklabels([r"$2^{" + str(i) + r"}$"for i in x])
+ax.set_ylabel("Accuracy (%)")
+ax.set_title("Linear SVM Classification Accuracy")
+plt.savefig(os.path.join(plots_dir, "linear-svm-accuracy.png"))
 
 
 ###
